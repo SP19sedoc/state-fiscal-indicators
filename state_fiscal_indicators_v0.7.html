@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="storybook">
+<html lang="en" data-theme="arcade">
 <head>
 <meta charset="UTF-8">
 <title>State Fiscal Indicators</title>
@@ -153,11 +153,6 @@
   <aside class="sidebar">
     <h1>State Fiscal Indicators</h1>
     <p class="subtitle">Compare fiscal health across Indian states, over time — pick states, then pick what to chart.</p>
-    <div class="theme-toggle" id="themeToggle">
-      <button class="theme-btn" data-theme-choice="storybook">Storybook</button>
-      <button class="theme-btn" data-theme-choice="playground">Playground</button>
-      <button class="theme-btn" data-theme-choice="arcade">Arcade</button>
-    </div>
     <div class="sidebar-label">
       <span id="statesLabel">1 · States</span>
       <span class="btn-group">
@@ -167,6 +162,11 @@
     </div>
     <input type="text" class="state-filter" id="stateFilter" placeholder="Filter states…">
     <div id="statePicker"></div>
+    <div class="theme-toggle" id="themeToggle" style="margin-top: 18px;">
+      <button class="theme-btn" data-theme-choice="storybook">Storybook</button>
+      <button class="theme-btn" data-theme-choice="playground">Playground</button>
+      <button class="theme-btn" data-theme-choice="arcade">Arcade</button>
+    </div>
   </aside>
   <div class="content-col">
     <div class="sticky-shell">
@@ -205,7 +205,7 @@ const AXIS_COLORS = {
 // VT323 (arcade's monospace) reads noticeably smaller than Inter/Nunito Sans
 // at the same pixel size, so axis labels need a larger size in that theme.
 const AXIS_FONT_SIZE = { storybook: 10, playground: 10, arcade: 15 };
-let currentTheme = document.documentElement.dataset.theme || 'storybook';
+let currentTheme = document.documentElement.dataset.theme || 'arcade';
 
 let currentCategory = Object.keys(categories)[0];
 const defaultState = state_groups.states.includes('Karnataka') ? 'Karnataka' : (state_groups.states[0] || states[0]);
@@ -223,8 +223,8 @@ function applyTheme(theme) {
 }
 
 (function initTheme() {
-  let saved = 'storybook';
-  try { saved = localStorage.getItem('sfi-theme') || 'storybook'; } catch (e) {}
+  let saved = 'arcade';
+  try { saved = localStorage.getItem('sfi-theme') || 'arcade'; } catch (e) {}
   currentTheme = saved;
   document.documentElement.dataset.theme = saved;
   document.querySelectorAll('.theme-btn').forEach(b => {
