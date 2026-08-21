@@ -262,8 +262,7 @@ const BENCHMARKS = {
 let currentTheme = document.documentElement.dataset.theme || 'playground';
 
 let currentCategory = Object.keys(categories)[0];
-const defaultState = state_groups.states.includes('Karnataka') ? 'Karnataka' : (state_groups.states[0] || states[0]);
-let selectedStates = new Set([defaultState]);
+let selectedStates = new Set();
 const selectedIndicatorsByCategory = {}; // category -> Set of indicator ids, populated lazily (empty by default)
 
 let guessMode = false;
@@ -375,7 +374,7 @@ function goToTourStep(i) {
 function exitTour() {
   tourActive = false;
   currentCategory = Object.keys(categories)[0];
-  selectedStates = new Set([defaultState]);
+  selectedStates = new Set();
   renderTabs();
   renderStatePicker();
   renderCategoryPanel(currentCategory);
