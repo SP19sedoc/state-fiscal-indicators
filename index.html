@@ -565,9 +565,17 @@ function multiLineChart(seriesByState, unit, indicatorId, benchmark) {
     svg += `<text x="${W - padR}" y="${(by - 5).toFixed(1)}" font-size="${axisFontSize}" fill="var(--accent)" text-anchor="end" font-weight="700">${benchmark.label}</text>`;
   }
   const labelEvery = Math.ceil(years.length / 10);
+  const lastIdx = years.length - 1;
   years.forEach((yr, i) => {
-    if (i % labelEvery === 0 || i === years.length - 1) {
-      svg += `<text x="${x(i).toFixed(1)}" y="${H - 8}" font-size="${axisFontSize}" fill="${axis.text}" text-anchor="middle">${yr}</text>`;
+    const isLast = i === lastIdx;
+    const isNatural = i % labelEvery === 0;
+    // The final tick is always shown; suppress a "natural" tick that would
+    // land too close to it (fewer than labelEvery steps away), which would
+    // otherwise crowd/overlap the last label.
+    const tooCloseToLast = !isLast && isNatural && (lastIdx - i) < labelEvery;
+    if ((isNatural && !tooCloseToLast) || isLast) {
+      const anchor = isLast ? 'end' : (i === 0 ? 'start' : 'middle');
+      svg += `<text x="${x(i).toFixed(1)}" y="${H - 8}" font-size="${axisFontSize}" fill="${axis.text}" text-anchor="${anchor}">${yr}</text>`;
     }
   });
 
@@ -634,6 +642,7 @@ document.addEventListener('mouseleave', () => { if (tooltipEl) tooltipEl.style.d
 const ACCENT_COLORS = { storybook: '#e8402c', playground: '#ff5d5d', arcade: '#ff2bd6' };
 const CARD_BG_COLORS = { storybook: '#ffffff', playground: '#ffffff', arcade: '#160a30' };
 const MUTED_COLORS = { storybook: '#6a6455', playground: '#5a5c66', arcade: '#9d8bc9' };
+const TEXT_COLORS = { storybook: '#1f2430', playground: '#22252b', arcade: '#f0eaff' };
 
 function wrapCanvasText(ctx, text, maxWidth) {
   const words = text.split(' ');
@@ -682,24 +691,33 @@ function downloadPng(seriesByState, ind) {
   img.onload = () => {
     const scale = 2;
     const measureCtx = document.createElement('canvas').getContext('2d');
+
+    measureCtx.font = 'bold 14px monospace';
+    const titleLines = wrapCanvasText(measureCtx, ind.label, 876);
+    const titleLineHeight = 18;
+    const titleH = titleLines.length * titleLineHeight + 14;
+
     measureCtx.font = '11px monospace';
-    const captionText = ind.source ? `${ind.label} — Source: ${ind.source}` : '';
+    const captionText = ind.source ? `Source: ${ind.source}` : '';
     const captionLines = captionText ? wrapCanvasText(measureCtx, captionText, 876) : [];
     const lineHeight = 14;
     const captionH = captionLines.length ? captionLines.length * lineHeight + 10 : 0;
 
     const canvas = document.createElement('canvas');
     canvas.width = 900 * scale;
-    canvas.height = (380 + captionH) * scale;
+    canvas.height = (titleH + 380 + captionH) * scale;
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = CARD_BG_COLORS[currentTheme];
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.scale(scale, scale);
-    ctx.drawImage(img, 0, 0);
+    ctx.fillStyle = TEXT_COLORS[currentTheme];
+    ctx.font = 'bold 14px monospace';
+    titleLines.forEach((line, i) => ctx.fillText(line, 12, 20 + i * titleLineHeight));
+    ctx.drawImage(img, 0, titleH);
     if (captionLines.length) {
       ctx.fillStyle = MUTED_COLORS[currentTheme];
       ctx.font = '11px monospace';
-      captionLines.forEach((line, i) => ctx.fillText(line, 12, 380 + 16 + i * lineHeight));
+      captionLines.forEach((line, i) => ctx.fillText(line, 12, titleH + 380 + 16 + i * lineHeight));
     }
     URL.revokeObjectURL(url);
     canvas.toBlob(blob => triggerDownload(URL.createObjectURL(blob), `${ind.id}.png`));
